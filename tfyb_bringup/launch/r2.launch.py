@@ -1,13 +1,15 @@
 from launch import LaunchDescription
-from launch_ros.actions import ComposableNodeContainer, LifecycleNode
+from launch_ros.actions import ComposableNodeContainer, LifecycleNode, Node
 from launch_ros.descriptions import ComposableNode
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from ament_index_python.packages import get_package_share_directory
 
 import os
+
 
 def generate_launch_description():
 
@@ -20,7 +22,9 @@ def generate_launch_description():
 
     package_share_directory = FindPackageShare("yahboom_r2").find("tfyb_bringup")
 
-    lidar_parameter_file = os.path.join(get_package_share_directory('ydlidar_ros2_driver') , 'params', 'ydlidar.yaml')
+    lidar_parameter_file = os.path.join(
+        get_package_share_directory("ydlidar_ros2_driver"), "params", "ydlidar.yaml"
+    )
 
     lidar_node = LifecycleNode(
         package="ydlidar_ros2_driver",
@@ -32,7 +36,22 @@ def generate_launch_description():
         node_namespace="/",
     )
 
-    # Container for composed nodes
+    # R2 Bringup
+    yahboomcar_bringup = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                FindPackageShare("yahboomcar_bringup"),
+                "/launch/yahboomcar_bringup_R2_launch.py",
+            ]
+        )
+    )
+
+    # Start the joy_node
+    joy_node = Node(
+        package="joy", executable="joy_node", name="joy_node", output="screen"
+    )
+
+    # Container for composed image nodes
     container = ComposableNodeContainer(
         name="camera_processing_container",
         namespace="",
@@ -67,6 +86,7 @@ def generate_launch_description():
                 namespace="camera",
                 parameters=[
                     {
+                        "camera_name": "camera",
                         "color_fps": LaunchConfiguration("color_fps"),
                         "color_width": LaunchConfiguration("color_width"),
                         "color_height": LaunchConfiguration("color_height"),
@@ -89,6 +109,8 @@ def generate_launch_description():
             enable_depth_arg,
             enable_ir_arg,
             lidar_node,
+            yahboomcar_bringup,
+            joy_node,
             container,
         ]
     )
