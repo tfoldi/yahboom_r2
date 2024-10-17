@@ -59,7 +59,7 @@ class TagNavigator(Node):
 
             if distance > self.stop_distance:
                 # Move towards the tag
-                twist.linear.x = min(1.0, 2.5 * (distance - self.stop_distance))
+                twist.linear.x = max(min(1.0, 2.5 * (distance - self.stop_distance)), 0.55)
                 twist.angular.z = 3.0 * angle
                 self.get_logger().info(
                     f"Speed twist.linear.x={twist.linear.x:.2f} twist.angular.z={twist.angular.z:.2f}"

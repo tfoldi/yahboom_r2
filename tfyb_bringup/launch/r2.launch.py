@@ -2,7 +2,11 @@ from launch import LaunchDescription
 from launch_ros.actions import ComposableNodeContainer, LifecycleNode, Node
 from launch_ros.descriptions import ComposableNode
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import (
+    LaunchConfiguration,
+    PathJoinSubstitution,
+    TextSubstitution,
+)
 from launch_ros.substitutions import FindPackageShare
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
@@ -30,7 +34,11 @@ def generate_launch_description():
     )
 
     model_path = PathJoinSubstitution(
-        [get_package_share_path("yahboom_r2"), "urdf", "yahboomcar_R2.urdf.xacro"]
+        [
+            TextSubstitution(text=str(get_package_share_path("tfyb_bringup"))),
+            "urdf",
+            "yahboomcar_R2.urdf.xacro",
+        ]
     )
 
     lidar_node = LifecycleNode(
@@ -39,7 +47,7 @@ def generate_launch_description():
         name="ydlidar_ros2_driver_node",
         output="screen",
         emulate_tty=True,
-        parameters=[lidar_parameter_file],
+        parameters=[lidar_parameter_file, {"frame_id": "laser_link"}],
         node_namespace="/",
     )
 
@@ -49,9 +57,9 @@ def generate_launch_description():
             [
                 FindPackageShare("yahboomcar_bringup"),
                 "/launch/yahboomcar_bringup_R2_launch.py",
-            ],
-            launch_arguments={"model": model_path}.items(),
-        )
+            ]
+        ),
+        launch_arguments={"model": model_path}.items(),
     )
 
     # Start the joy_node

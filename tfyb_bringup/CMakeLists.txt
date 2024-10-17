@@ -27,4 +27,9 @@ install(
   DESTINATION share/${PROJECT_NAME}/cfg
 )
 
+install(
+  DIRECTORY urdf/
+  DESTINATION share/${PROJECT_NAME}/urdf
+)
+
 ament_package()
