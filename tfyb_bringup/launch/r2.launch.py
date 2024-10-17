@@ -2,11 +2,14 @@ from launch import LaunchDescription
 from launch_ros.actions import ComposableNodeContainer, LifecycleNode, Node
 from launch_ros.descriptions import ComposableNode
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import (
+    get_package_share_directory,
+    get_package_share_path,
+)
 
 import os
 
@@ -26,6 +29,10 @@ def generate_launch_description():
         get_package_share_directory("ydlidar_ros2_driver"), "params", "ydlidar.yaml"
     )
 
+    model_path = PathJoinSubstitution(
+        [get_package_share_path("yahboom_r2"), "urdf", "yahboomcar_R2.urdf.xacro"]
+    )
+
     lidar_node = LifecycleNode(
         package="ydlidar_ros2_driver",
         executable="ydlidar_ros2_driver_node",
@@ -42,7 +49,8 @@ def generate_launch_description():
             [
                 FindPackageShare("yahboomcar_bringup"),
                 "/launch/yahboomcar_bringup_R2_launch.py",
-            ]
+            ],
+            launch_arguments={"model": model_path}.items(),
         )
     )
 
